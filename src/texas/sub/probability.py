@@ -5,9 +5,7 @@ from dataclasses import dataclass
 from functools import reduce
 from itertools import combinations, combinations_with_replacement
 from operator import mul
-from typing import Iterable
-
-from typing_extensions import TypedDict
+from typing import Iterable, TypedDict
 
 from texas.hand import HandName, Number
 
