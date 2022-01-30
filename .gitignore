@@ -1,0 +1,12 @@
+.venv
+.tox
+.env
+.coverage
+.vscode
+
+**/__pycache__
+**/*.ipynb
+
+note
+dist
+coverage.xml

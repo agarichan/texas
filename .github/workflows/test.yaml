@@ -1,0 +1,61 @@
+name: pytest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/test.yaml"
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/test.yaml"
+
+jobs:
+  test:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      max-parallel: 3
+      matrix:
+        platform: [ubuntu-latest]
+        python-version: ["3.8", "3.9", "3.10"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache python
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-python-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-test
+
+      - name: Install poetry
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          poetry config virtualenvs.create false
+          poetry install
+
+      - name: Test with pytest
+        run: pytest --runslow
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
