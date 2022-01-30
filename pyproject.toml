@@ -10,7 +10,6 @@ repository = "https://github.com/agarichan/exmachina"
 [tool.poetry.dependencies]
 python = "^3.8"
 
-
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
@@ -20,6 +19,13 @@ pyright = "^0.0.13"
 black = "^21.12b0"
 ipykernel = "^6.7.0"
 isort = "^5.10.1"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+style = "pep440"
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["src/*/__init__.py"]
 
 [tool.flake8]
 max-line-length = 120
