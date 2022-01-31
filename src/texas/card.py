@@ -135,8 +135,8 @@ class PlayingCard:
         """
         if cards is None:
             self.deck = self.deck + self.outs
-            return
-        self.deck = self.deck + reduce(add, cards)
+        else:
+            self.deck = self.deck + reduce(add, cards)
         self.outs = []
         assert len(self.deck) == 52
 
