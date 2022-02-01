@@ -23,6 +23,7 @@ class Dealer:
         """カードを配る"""
         players = sorted(players, key=lambda x: x.position)
         n = len(players)
+        self.board = []
         self.deck.reset()
         self.deck.shuffle()
 

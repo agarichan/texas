@@ -9,28 +9,7 @@ from .dealer import Dealer
 from .player import Player, TableManager
 from .position import Position
 from .round import Round
-
-
-class Fold(TypedDict):
-    type: Literal["FOLD"]
-
-
-class Check(TypedDict):
-    type: Literal["CHECK"]
-
-
-class Call(TypedDict):
-    type: Literal["CALL"]
-
-
-class Bet(TypedDict):
-    type: Literal["BET"]
-    value: int
-
-
-class Raise(TypedDict):
-    type: Literal["RAISE"]
-    value: int
+from .typed_dict import Bet, Call, Check, Fold, Raise
 
 
 class PlayerInfoRequired(TypedDict):
@@ -41,7 +20,7 @@ class PlayerInfoRequired(TypedDict):
 
 
 class PlayerInfo(PlayerInfoRequired, total=False):
-    raise_range: tuple[int, int]
+    bet_range: tuple[int, int]
     call_value: int
 
 
@@ -64,6 +43,8 @@ class TexasHoldem:
     dealer: Dealer = field(init=False, default_factory=Dealer)
     tm: TableManager = field(init=False)  # 席とプレイヤーの管理
     brm: BettingRoundManager = field(init=False)  # ActionやRoundの管理
+    is_completion: bool = field(init=False, default=True)
+    last_refunds: dict[Position, int] = field(init=False, default_factory=dict)
 
     def __post_init__(self):
         self.tm = TableManager(self.max)
@@ -98,20 +79,20 @@ class TexasHoldem:
             "position": player.position,
             "stack": player.stack,
             "hole": player.hole,
-            "playable_actions": list(playable_actions) if self.brm.current_action_position == position else [],
+            "playable_actions": sorted(playable_actions) if self.brm.current_action_position == position else [],
         }
         if self.brm.current_action_position == position:
             call_value = self.brm.current_action_player_call_value
             # ミニマムレイズの額よりスタックが少なければRAISEはできない
             if player.stack <= call_value + self.stakes[1]:
-                raise_action: set[Literal["RAISE"]] = set(["RAISE"])
+                raise_action: set[Literal["RAISE", "BET"]] = {"RAISE", "BET"}
                 playable_actions = playable_actions - raise_action
-                info.update(playable_actions=playable_actions)
+                info.update(playable_actions=sorted(playable_actions))
             if "CALL" in playable_actions:
                 info.update(call_value=call_value)
-            if "RAISE" in playable_actions:
+            if "RAISE" in playable_actions or "BET" in playable_actions:
                 raise_range = (call_value + self.stakes[1], player.stack)
-                info.update(raise_range=raise_range)
+                info.update(bet_range=raise_range)
 
         return PlayerInfo(**info)
 
@@ -123,11 +104,13 @@ class TexasHoldem:
         self.tm.new_game()
         self.brm = BettingRoundManager({p.position: p.id for p in self.tm.players}, stakes=self.stakes, ante=self.ante)
         self._preflop()
+        self.is_completion = False
 
     def next_game(self):
         self.tm.next_game()
         self.brm = BettingRoundManager({p.position: p.id for p in self.tm.players}, stakes=self.stakes, ante=self.ante)
         self._preflop()
+        self.is_completion = False
 
     def execute(self, action: Fold | Check | Call | Bet | Raise):
         position = self.brm.current_action_position
@@ -180,4 +163,6 @@ class TexasHoldem:
             winners = self.dealer.judge(self.tm.get_player_by_position(p) for p in self.brm.alive_positions)
         else:
             winners = self.brm.alive_positions
-        self.tm.refund(self.brm.get_refunds(winners))
+        self.last_refunds = self.brm.get_refunds(winners)
+        self.tm.refund(self.last_refunds)
+        self.is_completion = True

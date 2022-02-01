@@ -34,6 +34,7 @@ def test_playing_card():
 
     assert deck.deck == [draw2[0], draw1[0]]
     deck.reset()
+    assert deck.outs == []
     draw3 = deck.draw(2)
     assert draw3 == [draw2[0], draw1[0]]
 

@@ -7,9 +7,7 @@ from enum import Enum
 from functools import lru_cache
 from itertools import combinations, product
 from pathlib import Path
-from typing import Iterable
-
-from typing_extensions import TypedDict
+from typing import Iterable, TypedDict
 
 from .card import Card, Number, Suit
 

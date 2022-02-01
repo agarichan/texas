@@ -119,9 +119,11 @@ class BettingRoundManager:
 
     @property
     def is_round_completion(self) -> bool:
+        """今のラウンドが終了しているか判定する"""
         actions = self.round_actions_dict[self.round]
         active_positions = self.active_positions.copy()
-        if len(active_positions) <= 1:
+        # そのラウンドで行動できる人が一人乃至いない場合 (preflopのBBまで全員フォールドもここに含む)
+        if len([a for a in actions if not a.blind and a.type != "FOLD"]) == 0 and len(active_positions) <= 1:
             return True
         # プリフロップでBBまでリンプインで回ってきた時は最後にBBがチェックすれば完了
         if self.round == Round.preflop and len(actions) > 2 and actions[-1].type == "CHECK":
@@ -129,7 +131,6 @@ class BettingRoundManager:
         # プリフロップでリンプインで最後がCHECKでなければ、未完了
         if self.round == Round.preflop and self.max_bet == self.stakes[1] and actions[-1].type != "CHECK":
             return False
-
         # 生き残りが全員CHECKでも完了
         check_positions = set()
         for action in reversed(actions):
