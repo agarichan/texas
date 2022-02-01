@@ -44,10 +44,13 @@ def test_texasholdem():
     assert game.table_info["round"] == Round.showdown
     assert len(game.table_info["board"]) == 5
 
-    assert {
+    stack = 2618  # 3000 - 7 - 75 - 300
+    refund = 807  # 42 + 165 + 600
+    stacks = {
         game.get_player_info(Position.dealer_button)["stack"],
         game.get_player_info(Position.big_blind)["stack"],
-    } == {3000 - 7 - 75 - 300 + 42 + 165 + 600, 3000 - 7 - 75 - 300}
+    }
+    assert stacks == {stack + refund, stack} or stacks == {stack + 404, stack + 403}
 
     game.next_game()
 
