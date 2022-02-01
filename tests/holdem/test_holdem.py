@@ -90,8 +90,26 @@ def test_fold():
     assert game.current_player.position == Position.small_blind
     game.execute({"type": "FOLD"})  # SB
 
+    assert game.brm.is_round_completion
+
     stacks = [
         game.get_player_info(Position.small_blind)["stack"],
         game.get_player_info(Position.big_blind)["stack"],
     ]
     assert stacks == [2985, 115]
+
+
+def test_all_in_eq():
+    game = TexasHoldem(max=6, stakes=(15, 30), ante=0)
+
+    game.tm.push(Player(id="1", stack=3000, position=Position.small_blind))
+    game.tm.push(Player(id="2", stack=3000, position=Position.big_blind))
+
+    game.next_game()
+    assert game.current_player.id == "2"
+    assert game.current_player.position == Position.small_blind
+    game.execute({"type": "RAISE", "value": 2985})  # SB
+    assert game.brm.actions[-1].all_in
+
+    assert game.current_player.position == Position.big_blind
+    assert "CALL" in game.brm.playable_action

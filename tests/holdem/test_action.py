@@ -289,3 +289,16 @@ def test_all_in_scenario3():
 
     assert brm.is_round_completion
     assert brm.next_round() == Round.showdown
+
+
+def test_all_in_eq_scenario4():
+    brm = BettingRoundManager(
+        position_ids={
+            Position.small_blind: "1",
+            Position.big_blind: "2",
+        },
+        stakes=(15, 30),
+    )
+
+    brm.raise_make(3000, all_in=True)  # sb raise -> 2985 (all-in)
+    assert not brm.is_round_completion, "アクティブが一人(BB)なのでまだ終わらない"

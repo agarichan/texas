@@ -46,12 +46,16 @@ def main():  # noqa: C901
             info = game.table_info
             console.print(f'Board: {info["board"]}, Pot: {sum(p.value for p in info["pots"])}, Round: {info["round"]}')
 
-        # 精算
+        # 精算 & Next game
         if game.is_completion:
             h_refund, b_refund = game.last_refunds[human.position], game.last_refunds[bot.position]
             console.print(f"You: {human.hole}, Bot: {bot.hole}")
             console.print(f"You: {human.stack}(+{h_refund}), Bot: {bot.stack}(+{b_refund})")
             game.next_game()
+            if bot.stack < 2 * game.stakes[1] or human.stack < 2 * game.stakes[1]:
+                txt = "You win!" if bot.stack < human.stack else "You lose"
+                console.rule("[bold cyan]" + txt)
+                break
             console.rule(f"[bold]Hand: {game.tm.epoch}")
             info = game.table_info
             console.print(f'Board: {info["board"]}, Pot: {sum(p.value for p in info["pots"])}, Round: {info["round"]}')
@@ -88,11 +92,11 @@ def player_action(info: PlayerInfo) -> actions:  # noqa: C901
 def bot_action(info: PlayerInfo) -> actions:
     if "CALL" in info["playable_actions"]:
         call_value = info.get("call_value") or 0
-        all_in = "(all-in)" if call_value >= info["stack"] else ""
-        console.print(f"[cyan]BotはCALLしました{all_in}")
+        all_in = "[red](ALL-IN)[/ red]" if call_value >= info["stack"] else ""
+        console.print(f"[cyan]BotはCALLしました[/ cyan]{all_in}, value: {call_value}, stack: {info['stack']}")
         return {"type": "CALL"}
     else:
-        console.print("[cyan]BotはCHECKしました")
+        console.print(f"[cyan]BotはCHECKしました, , stack: {info['stack']}")
         return {"type": "CHECK"}
 
 
