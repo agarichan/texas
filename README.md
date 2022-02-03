@@ -13,7 +13,14 @@
   <img src="https://img.shields.io/pypi/pyversions/texas.svg?color=%2334D058" alt="Supported Python versions">
 </a>
 
-## test
+## Sample
+
+```
+pip install -U texas[sample]
+python -m texas.sample.simple_call_bot_heads_up
+```
+
+## Test
 
 時間のかかる test も全て行う場合は`--runslow`オプションをつける
 
